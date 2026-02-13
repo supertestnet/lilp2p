@@ -6,8 +6,8 @@
         <title>LilP2P</title>
         <script src="https://supertestnet.github.io/bitcoin-chess/js/qrcode.js"></script>
         <script src="https://supertestnet.github.io/bankify/super_nostr.js"></script>
-        <script src="https://supertestnet.github.io/lilp2p/lilp2p.js"></script>
-        <!-- <script src="file:///home/supertestnet/nostr_projects/webrtc_client_server/lilp2p.js"></script> -->
+        <!-- <script src="https://supertestnet.github.io/lilp2p/lilp2p.js"></script> -->
+        <script src="file:///home/supertestnet/nostr_projects/webrtc_client_server/lilp2p.js"></script>
         <script src="https://bundle.run/noble-secp256k1@1.2.14"></script>
         <script>
             var lilP2PInterface = {
@@ -166,7 +166,7 @@
                         $( '.local_offer' ).innerText = url;
                         $( '.local_offer_qr_btn' ).onclick = () => {
                             $( '.local_offer_qr' ).innerHTML = ``;
-                            $( '.local_offer_qr' ).append( lilP2PInterface.createQR( url.toUpperCase() ) );
+                            $( '.local_offer_qr' ).append( lilP2PInterface.createQR( url ) );
                         }
                         $( '.comms_btn' ).classList.add( "hidden" );
                         $( '.loading' ).classList.add( "hidden" );
