@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, user-scalable=no">
+        <title>LilP2P</title>
+        <script src="https://supertestnet.github.io/bitcoin-chess/js/qrcode.js"></script>
+        <script src="https://supertestnet.github.io/bankify/super_nostr.js"></script>
+        <script src="https://supertestnet.github.io/lilp2p/lilp2p.js"></script>
+        <script src="https://bundle.run/noble-secp256k1@1.2.14"></script>
+        <script>
+            var lilP2PInterface = {
+                createQR: content => {
+                    var dataUriPngImage = document.createElement( "img" ),
+                    s = QRCode.generatePNG( content, {
+                        ecclevel: "M",
+                        format: "html",
+                        fillcolor: "#FFFFFF",
+                        textcolor: "#000000",
+                        margin: 4,
+                        modulesize: 8,
+                    });
+                    dataUriPngImage.src = s;
+                    dataUriPngImage.className = "qr_code";
+                    dataUriPngImage.style.width = "100%";
+                    return dataUriPngImage;
+                },
+                sendMessage: () => {
+                    var chat_id = Object.keys( lilP2P.chats )[ 0 ];
+                    if ( !$( '.message_text_box' ).value ) return;
+                    lilP2P.chats[ chat_id ].activedc.send(JSON.stringify({message: $( '.message_text_box' ).value}));
+                    lilP2P.chats[ chat_id ].messages.push( [ $( '.message_text_box' ).value, Date.now() ] );
+                    $( '.message_text_box' ).value = "";
+                },
+                chatLoop: async ( chat_id, size ) => {
+                    var chatlog = lilP2P.chats[ chat_id ].messages;
+                    if ( chatlog.length === size ) {
+                        await lilP2P.waitSomeTime( 10 );
+                        return lilP2PInterface.chatLoop( chat_id, size );
+                    }
+                    chatlog.forEach( ( item, index ) => {
+                        if ( index < size ) return;
+                        var d_obj = new Date( item[ 1 ] );
+                        var l_date = d_obj.toLocaleDateString( "en-ca" );
+                        var l_time = d_obj.toLocaleTimeString();
+                        $( '.chatlog' ).innerHTML += `<p>[${l_date} ${l_time}] ${item[ 0 ]}</p>`;
+                        $( '.chatlog' ).scrollTop = $( '.chatlog' ).scrollHeight;
+                        size = size + 1;
+                    });
+                    await lilP2P.waitSomeTime( 10 );
+                    return lilP2PInterface.chatLoop( chat_id, size );
+                },
+            }
+        </script>
+        <style>
+            * {
+                box-sizing: border-box;
+                font-size: 1.15rem;
+                font-family: Arial, sans-serif;
+            }
+            html {
+                max-width: 800px;
+                padding: 3rem 1rem;
+                margin: auto;
+                line-height: 1.25;
+                padding: 0;
+            }
+            body {
+                margin: 3rem 1rem;
+                word-wrap: break-word;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            h2 {
+                font-size: 1.5rem;
+            }
+            input {
+                line-height: 1.25;
+                width: 100%;
+                height: 1.8rem;
+                font-size: 1.15rem;
+                border: 1px solid grey;
+            }
+            .hidden {
+                display: none !important;
+            }
+            .bold {
+                font-weight: bold;
+            }
+            .local_offer {
+                border: 1px solid black;
+                padding: .5rem;
+                background-color: #cccccc;
+            }
+            .qr_code {
+                max-width: 15rem;
+                border: 1px solid black;
+                border-radius: 1rem;
+            }
+            .chatlog {
+                height: 200px;
+                overflow: auto;
+                border: 1px solid black;
+            }
+            @media screen and (max-width: 600px) {
+            }
+        </style>
+        <script>
+            var $ = document.querySelector.bind( document );
+            var $$ = document.querySelectorAll.bind( document );
+            var url_params = new URLSearchParams( window.location.search );
+            var url_keys = url_params.keys();
+            var $_GET = {}
+            for ( var key of url_keys ) $_GET[ key ] = url_params.get( key );
+            var hash_arr = window.location.href.substring( window.location.href.indexOf( "#" ) ).split( "#" );
+            hash_arr.splice( 0, 1 );
+            var $_HASH = {}
+            hash_arr.forEach( item => {
+                var vals = item.split( "=" );
+                $_HASH[ vals[ 0 ] ] = vals[ 1 ];
+            });
+        </script>
+    </head>
+    <body>
+        <h1>LilP2P</h1>
+        <div class="comms_btn hidden">
+            <p><button class="set_up_comms">Set up comms</button></p>
+        </div>
+        <div class="info_for_counterparty hidden">
+            <h3>Have users visit this link</h3>
+            <p><div class="local_offer"></div></p>
+            <p><button class="local_offer_qr_btn">Show QR</button></p>
+            <p class="local_offer_qr"></p>
+        </div>
+        <div class="chatbox hidden">
+            <p class="bold">Chat</p>
+            <div class="chatlog"></div>
+            <br>
+            <input type="text" class="message_text_box" placeholder="Type your message here">
+            <p><button id="sendMessageBtn" onclick="lilP2PInterface.sendMessage();">Send message</button></p>
+        </div>
+        <div class="loading hidden">
+            <p>loading...</p>
+        </div>
+        <script>
+            (async() => {
+                $( '.message_text_box' ).innerText = "";
+                if ( navigator.webkitGetUserMedia ) RTCPeerConnection = webkitRTCPeerConnection;
+                if ( !$_HASH[ "admin" ] ) {
+                    //display comms button
+                    $( '.local_offer' ).innerText = "";
+                    $( '.comms_btn' ).classList.remove( "hidden" );
+
+                    //set up nostr listener
+                    $( '.set_up_comms' ).onclick = async () => {
+                        //modify display
+                        $( '.comms_btn' ).classList.add( "hidden" );
+                        $( '.loading' ).classList.remove( "hidden" );
+
+                        //prepare network connection
+                        var connection_point = await lilP2P.prepareAdminConnection();
+
+                        //display url
+                        var url = window.location.protocol + "//" + window.location.hostname + window.location.pathname + `#admin=${connection_point}`;
+                        $( '.local_offer' ).innerText = url;
+                        $( '.local_offer_qr_btn' ).onclick = () => {
+                            $( '.local_offer_qr' ).innerHTML = ``;
+                            $( '.local_offer_qr' ).append( lilP2PInterface.createQR( url.toUpperCase() ) );
+                        }
+                        $( '.comms_btn' ).classList.add( "hidden" );
+                        $( '.loading' ).classList.add( "hidden" );
+                        $( '.info_for_counterparty' ).classList.remove( "hidden" );
+
+                        //wait for signal from user
+                        var loop = async () => {
+                            if ( lilP2P.ready ) return;
+                            await lilP2P.waitSomeTime( 10 );
+                            return loop();
+                        }
+                        await loop();
+
+                        //display chatbox
+                        $( '.info_for_counterparty' ).classList.add( "hidden" );
+                        $( '.chatbox' ).classList.remove( "hidden" );
+                    }
+                } else {
+                    //prepare network connection
+                    var connection_point = $_HASH[ "admin" ].split( "," );
+                    await lilP2P.prepareUserConnection( connection_point );
+
+                    //wait til connection is established
+                    var loop = async () => {
+                        if ( lilP2P.ready ) return;
+                        await lilP2P.waitSomeTime( 10 );
+                        return loop();
+                    }
+                    await loop();
+                    $( '.loading' ).classList.add( "hidden" );
+                    $( '.chatbox' ).classList.remove( "hidden" );
+                }
+            })();
+        </script>
+    </body>
+</html>
