@@ -123,6 +123,7 @@ var lilP2P = {
         var [ admin, nostr_relay ] = connection_point.split( "," );
         lilP2P.nostr_relays = [ nostr_relay ];
         lilP2P.nostr_privkey = super_nostr.getPrivkey();
+        var pubkey = super_nostr.getPubkey( lilP2P.nostr_privkey );
         var am_admin = false;
         lilP2P.connection_id = await lilP2P.setUpComms( lilP2P.nostr_privkey, am_admin, admin );
 
@@ -132,6 +133,28 @@ var lilP2P = {
         var event = await super_nostr.prepEvent( lilP2P.nostr_privkey, emsg, 4, [ [ "p", admin ] ] );
         var socket = super_nostr.sockets[ lilP2P.connection_id ].socket;
         super_nostr.sendEvent( event, socket );
+
+        //wait til connection is established
+        var loop = async () => {
+            if ( lilP2P.users.hasOwnProperty( pubkey ) ) return;
+            await lilP2P.waitSomeTime( 10 );
+            return loop();
+        }
+        await loop();
+
+        //close nostr socket
+        super_nostr.sockets[ lilP2P.connection_id ].socket.close();
+        lilP2P.connection_id = null;
+
+        //return chat_id
+        var chat_id = lilP2P.users[ pubkey ];
+        delete lilP2P.users[ pubkey ];
+        return chat_id;
+    },
+    send: ( chat_id, message ) => {
+        lilP2P.chats[ chat_id ].activedc.send( JSON.stringify({ message }) );
+        lilP2P.chats[ chat_id ].messages.push([ message, Date.now() ]);
+        return true;
     },
     setUpComms: async ( privkey, am_admin, admin ) => {
         var pubkey = super_nostr.getPubkey( privkey );
@@ -139,6 +162,7 @@ var lilP2P = {
             var subId = super_nostr.bytesToHex( crypto.getRandomValues( new Uint8Array( 8 ) ) );
             var filter  = {}
             filter.kinds = [ 4 ];
+            filter.since = Math.floor( Date.now() / 1000 );
             filter[ "#p" ] = [ pubkey ];
             var subscription = [ "REQ", subId, filter ];
             socket.send( JSON.stringify( subscription ) );
@@ -192,6 +216,7 @@ var lilP2P = {
 
                 //prepare pc2
                 var [ remote_offer, connection_point, chat_id ] = JSON.parse( event.content );
+                lilP2P.users[ pubkey ] = chat_id;
                 lilP2P.init( chat_id );
                 lilP2PInterface.chatLoop( chat_id, 0 );
                 lilP2P.chats[ chat_id ].remoteOffer = JSON.stringify( remote_offer );
