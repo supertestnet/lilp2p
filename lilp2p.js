@@ -120,8 +120,7 @@ var lilP2P = {
     },
     prepareUserConnection: async connection_point => {
         //set up nostr listener
-        $( '.loading' ).classList.remove( "hidden" );
-        var [ admin, nostr_relay ] = connection_point;
+        var [ admin, nostr_relay ] = connection_point.split( "," );
         lilP2P.nostr_relays = [ nostr_relay ];
         lilP2P.nostr_privkey = super_nostr.getPrivkey();
         var am_admin = false;
@@ -194,6 +193,7 @@ var lilP2P = {
                 //prepare pc2
                 var [ remote_offer, connection_point, chat_id ] = JSON.parse( event.content );
                 lilP2P.init( chat_id );
+                console.log( lilP2P.chats[ chat_id ] );
                 lilP2PInterface.chatLoop( chat_id, 0 );
                 lilP2P.chats[ chat_id ].remoteOffer = JSON.stringify( remote_offer );
                 lilP2P.connection_point = connection_point;
