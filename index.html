@@ -6,7 +6,8 @@
         <title>LilP2P</title>
         <script src="https://supertestnet.github.io/bitcoin-chess/js/qrcode.js"></script>
         <script src="https://supertestnet.github.io/bankify/super_nostr.js"></script>
-        <script src="https://supertestnet.github.io/lilp2p/lilp2p.js"></script>
+        <!-- <script src="https://supertestnet.github.io/lilp2p/lilp2p.js"></script> -->
+        <script src="file:///home/supertestnet/nostr_projects/webrtc_client_server/lilp2p.js"></script>
         <script src="https://bundle.run/noble-secp256k1@1.2.14"></script>
         <script>
             var lilP2PInterface = {
@@ -28,8 +29,7 @@
                 sendMessage: () => {
                     var chat_id = Object.keys( lilP2P.chats )[ 0 ];
                     if ( !$( '.message_text_box' ).value ) return;
-                    lilP2P.chats[ chat_id ].activedc.send(JSON.stringify({message: $( '.message_text_box' ).value}));
-                    lilP2P.chats[ chat_id ].messages.push( [ $( '.message_text_box' ).value, Date.now() ] );
+                    lilP2P.send( chat_id, $( '.message_text_box' ).value );
                     $( '.message_text_box' ).value = "";
                 },
                 chatLoop: async ( chat_id, size ) => {
@@ -172,9 +172,18 @@
                         $( '.loading' ).classList.add( "hidden" );
                         $( '.info_for_counterparty' ).classList.remove( "hidden" );
 
-                        //wait for signal from user
+                        //wait for chat id
                         var loop = async () => {
-                            if ( lilP2P.ready ) return;
+                            if ( Object.keys( lilP2P.chats )[ 0 ] ) return;
+                            await lilP2P.waitSomeTime( 10 );
+                            return loop();
+                        }
+                        await loop();
+
+                        //wait for signal from user
+                        var chat_id = Object.keys( lilP2P.chats )[ 0 ];
+                        var loop = async () => {
+                            if ( lilP2P.chats[ chat_id ].ready ) return;
                             await lilP2P.waitSomeTime( 10 );
                             return loop();
                         }
@@ -186,12 +195,22 @@
                     }
                 } else {
                     //prepare network connection
-                    var connection_point = $_HASH[ "admin" ].split( "," );
+                    $( '.loading' ).classList.remove( "hidden" );
+                    var connection_point = $_HASH[ "admin" ];
                     await lilP2P.prepareUserConnection( connection_point );
 
-                    //wait til connection is established
+                    //wait for chat id
                     var loop = async () => {
-                        if ( lilP2P.ready ) return;
+                        if ( Object.keys( lilP2P.chats )[ 0 ] ) return;
+                        await lilP2P.waitSomeTime( 10 );
+                        return loop();
+                    }
+                    await loop();
+
+                    //wait til connection is established
+                    var chat_id = Object.keys( lilP2P.chats )[ 0 ];
+                    var loop = async () => {
+                        if ( lilP2P.chats[ chat_id ].ready ) return;
                         await lilP2P.waitSomeTime( 10 );
                         return loop();
                     }
