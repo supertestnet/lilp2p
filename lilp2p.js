@@ -193,7 +193,6 @@ var lilP2P = {
                 //prepare pc2
                 var [ remote_offer, connection_point, chat_id ] = JSON.parse( event.content );
                 lilP2P.init( chat_id );
-                console.log( lilP2P.chats[ chat_id ] );
                 lilP2PInterface.chatLoop( chat_id, 0 );
                 lilP2P.chats[ chat_id ].remoteOffer = JSON.stringify( remote_offer );
                 lilP2P.connection_point = connection_point;
