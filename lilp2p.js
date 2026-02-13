@@ -9,7 +9,6 @@ var lilP2P = {
     con: { optional: [ { DtlsSrtpKeyAgreement: true } ] },
     sdpConstraints: { optional: [] },
     chats: {},
-    ready: false,
     messages: [],
     privkey: null,
     users: {},
@@ -30,6 +29,7 @@ var lilP2P = {
         if ( !chat_id ) chat_id = "c_" + super_nostr.getPrivkey().substring( 0, 16 );
         lilP2P.chats[ chat_id ] = {
             messages: [],
+            ready: false,
             localOffer: null,
             remoteOffer: null,
             remoteAnswer: null,
@@ -54,7 +54,7 @@ var lilP2P = {
         var emsg = await super_nostr.alt_encrypt( privkey, connection_pubkey, msg );
         var event = await super_nostr.prepEvent( privkey, emsg, 4, [ [ "p", connection_pubkey ] ] );
         await super_nostr.alt_sendEvent( event, nostr_relay );
-        lilP2P.ready = true;
+        lilP2P.chats[ chat_id ].ready = true;
     },
     makeOffer: chat_id => {
         lilP2P.chats[ chat_id ].dc1 = lilP2P.chats[ chat_id ].pc1.createDataChannel( 'test', { reliable: true });
@@ -181,7 +181,7 @@ var lilP2P = {
                     lilP2P.chats[ chat_id ].remoteAnswer = answer;
                     var answerDesc = new RTCSessionDescription( JSON.parse( answer ) );
                     lilP2P.chats[ chat_id ].pc1.setRemoteDescription( answerDesc );
-                    lilP2P.ready = true;
+                    lilP2P.chats[ chat_id ].ready = true;
                 }
             }
         } else {
