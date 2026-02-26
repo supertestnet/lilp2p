@@ -3,13 +3,13 @@ A library for doing p2p stuff via webrtc with nostr as a signaling mechanism
 
 # API
 
-Open a page containing lilp2p.js and run this:
+Prepare to receive messages like this:
 
 ```
 var connection_point = await lilP2P.prepareAdminConnection();
 ```
 
-Open another page containing lilp2p.js and run this:
+Connect to the previous user like this:
 
 ```
 var chat_id = await lilP2P.prepareUserConnection( connection_point );
