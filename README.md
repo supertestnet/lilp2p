@@ -3,19 +3,19 @@ A library for doing p2p stuff via webrtc with nostr as a signaling mechanism
 
 # API
 
-Prepare to receive messages like this:
+The first user prepares to receive messages like this:
 
 ```
 var connection_point = await lilP2P.prepareAdminConnection();
 ```
 
-Connect to the previous user like this:
+The second user connect to the first user like this:
 
 ```
 var chat_id = await lilP2P.prepareUserConnection( connection_point );
 ```
 
-The chat_id from the previous step should become visible to the admin as a new key/value pair in an object at lilP2P.chats – now either party can send messages to the other via this command:
+The chat_id from the previous step should become visible to the first user as a new key/value pair in an object at lilP2P.chats – now either user can send messages to the other user via this command:
 
 ```
 var success = lilP2P.send( chat_id, "any text string" );
