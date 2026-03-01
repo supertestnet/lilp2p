@@ -199,7 +199,6 @@ var lilP2P = {
                 } else {
                     var chat_id = lilP2P.users[ event.pubkey ];
                     if ( !chat_id ) return;
-                    if ( lilP2PInterface ) lilP2PInterface.chatLoop( chat_id, 0 );
                     var answer = event.content;
                     lilP2P.chats[ chat_id ].remoteAnswer = answer;
                     var answerDesc = new RTCSessionDescription( JSON.parse( answer ) );
@@ -218,7 +217,6 @@ var lilP2P = {
                 var [ remote_offer, connection_point, chat_id ] = JSON.parse( event.content );
                 lilP2P.users[ pubkey ] = chat_id;
                 lilP2P.init( chat_id );
-                if ( lilP2PInterface ) lilP2PInterface.chatLoop( chat_id, 0 );
                 lilP2P.chats[ chat_id ].remoteOffer = JSON.stringify( remote_offer );
                 lilP2P.connection_point = connection_point;
                 lilP2P.chats[ chat_id ].pc2 = new RTCPeerConnection( lilP2P.cfg, lilP2P.con );
