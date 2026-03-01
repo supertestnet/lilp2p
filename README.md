@@ -27,3 +27,9 @@ Either party can view the chatlog like this:
 var chatlog = lilP2P.chats[ chat_id ].messages;
 console.log( chatlog );
 ```
+
+The structure of messages in the chatlog is:
+
+```
+{ text: <text of the message>, timestamp: <unix timestamp>, from: <string "me" or "them"> }
+```
