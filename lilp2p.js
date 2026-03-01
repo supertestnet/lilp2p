@@ -69,7 +69,7 @@ var lilP2P = {
                 if (data.type === 'file') {
                     fileReceiver1.receive( e.data, {} );
                 } else {
-                    lilP2P.chats[ chat_id ].messages.push( [ data.message, Date.now() ] );
+                    lilP2P.chats[ chat_id ].messages.push({ text: data.message, timestamp: Date.now(), from: "them" });
                 }
             }
         }
@@ -92,7 +92,7 @@ var lilP2P = {
                 if (data.type === 'file') {
                   fileReceiver2.receive( e.data, {} );
                 } else {
-                    lilP2P.chats[ chat_id ].messages.push( [ data.message, Date.now() ] );
+                    lilP2P.chats[ chat_id ].messages.push({ text: data.message, timestamp: Date.now(), from: "them" });
                 }
             }
         }
@@ -153,7 +153,7 @@ var lilP2P = {
     },
     send: ( chat_id, message ) => {
         lilP2P.chats[ chat_id ].activedc.send( JSON.stringify({ message }) );
-        lilP2P.chats[ chat_id ].messages.push([ message, Date.now() ]);
+        lilP2P.chats[ chat_id ].messages.push({ text: message, timestamp: Date.now(), from: "me" });
         return true;
     },
     setUpComms: async ( privkey, am_admin, admin ) => {
