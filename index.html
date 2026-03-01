@@ -182,6 +182,7 @@
 
                         //wait for signal from user
                         var chat_id = Object.keys( lilP2P.chats )[ 0 ];
+                        lilP2PInterface.chatLoop( chat_id, 0 );
                         var loop = async () => {
                             if ( lilP2P.chats[ chat_id ].ready ) return;
                             await lilP2P.waitSomeTime( 10 );
@@ -197,7 +198,8 @@
                     //prepare network connection
                     $( '.loading' ).classList.remove( "hidden" );
                     var connection_point = $_HASH[ "admin" ];
-                    await lilP2P.prepareUserConnection( connection_point );
+                    var chat_id = await lilP2P.prepareUserConnection( connection_point );
+                    if ( lilP2PInterface ) lilP2PInterface.chatLoop( chat_id, 0 );
 
                     //wait for chat id
                     var loop = async () => {
