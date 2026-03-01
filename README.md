@@ -9,7 +9,7 @@ The first user prepares to receive messages like this:
 var connection_point = await lilP2P.prepareAdminConnection();
 ```
 
-The second user connect to the first user like this:
+The second user connects to the first user like this:
 
 ```
 var chat_id = await lilP2P.prepareUserConnection( connection_point );
