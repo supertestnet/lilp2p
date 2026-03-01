@@ -40,10 +40,10 @@
                     }
                     chatlog.forEach( ( item, index ) => {
                         if ( index < size ) return;
-                        var d_obj = new Date( item[ 1 ] );
+                        var d_obj = new Date( item[ "timestamp" ] );
                         var l_date = d_obj.toLocaleDateString( "en-ca" );
                         var l_time = d_obj.toLocaleTimeString();
-                        $( '.chatlog' ).innerHTML += `<p>[${l_date} ${l_time}] ${item[ 0 ]}</p>`;
+                        $( '.chatlog' ).innerHTML += `<p>[${l_date} ${l_time}] ${item[ "text" ]}</p>`;
                         $( '.chatlog' ).scrollTop = $( '.chatlog' ).scrollHeight;
                         size = size + 1;
                     });
