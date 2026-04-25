@@ -115,7 +115,7 @@ var lilP2P = {
     prepareAdminConnection: async nostr_relay => {
         lilP2P.nostr_privkey = super_nostr.getPrivkey();
         var am_admin = true;
-        lilP2P.connection_id = await lilP2P.setUpComms( lilP2P.nostr_privkey, am_admin );
+        lilP2P.connection_id = await lilP2P.setUpComms( lilP2P.nostr_privkey, am_admin, null, nostr_relay );
         return lilP2P.getConnectionPoint( nostr_relay );
     },
     prepareUserConnection: async connection_point => {
@@ -125,7 +125,7 @@ var lilP2P = {
         lilP2P.nostr_privkey = super_nostr.getPrivkey();
         var pubkey = super_nostr.getPubkey( lilP2P.nostr_privkey );
         var am_admin = false;
-        lilP2P.connection_id = await lilP2P.setUpComms( lilP2P.nostr_privkey, am_admin, admin );
+        lilP2P.connection_id = await lilP2P.setUpComms( lilP2P.nostr_privkey, am_admin, admin, nostr_relay );
 
         //request offer
         var msg = JSON.stringify({msg_type: "ctn_request", msg_value: ""});
