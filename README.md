@@ -6,7 +6,8 @@ A library for doing p2p stuff via webrtc with nostr as a signaling mechanism
 The first user prepares to receive messages like this:
 
 ```
-var connection_point = await lilP2P.prepareAdminConnection();
+var nostr_relay = 'wss://nostr.oxtr.dev';
+var connection_point = await lilP2P.prepareAdminConnection( nostr_relay );
 ```
 
 The second user connects to the first user like this:
