@@ -4,7 +4,7 @@
 var lilP2P = {
     connection_id: null,
     connection_point: null,
-    nostr_relays: [ `wss://relay.notoshi.win/` ],
+    nostr_relays: [ `wss://nostr.oxtr.dev` ],
     cfg: { iceServers: [ { urls: [ `stun:stun.gmx.net` ] } ] },
     con: { optional: [ { DtlsSrtpKeyAgreement: true } ] },
     sdpConstraints: { optional: [] },
@@ -107,16 +107,16 @@ var lilP2P = {
             lilP2P.sdpConstraints,
         );
     },
-    getConnectionPoint: () => {
-        var nostr_relay = lilP2P.nostr_relays[ 0 ];
+    getConnectionPoint: nostr_relay => {
+        if ( !nostr_relay ) nostr_relay = lilP2P.nostr_relays[ 0 ];
         var pubkey = super_nostr.getPubkey( lilP2P.nostr_privkey );
         return `${pubkey},${nostr_relay}`;
     },
-    prepareAdminConnection: async () => {
+    prepareAdminConnection: async nostr_relay => {
         lilP2P.nostr_privkey = super_nostr.getPrivkey();
         var am_admin = true;
         lilP2P.connection_id = await lilP2P.setUpComms( lilP2P.nostr_privkey, am_admin );
-        return lilP2P.getConnectionPoint();
+        return lilP2P.getConnectionPoint( nostr_relay );
     },
     prepareUserConnection: async connection_point => {
         //set up nostr listener
@@ -156,7 +156,7 @@ var lilP2P = {
         lilP2P.chats[ chat_id ].messages.push({ text: message, timestamp: Date.now(), from: "me" });
         return true;
     },
-    setUpComms: async ( privkey, am_admin, admin ) => {
+    setUpComms: async ( privkey, am_admin, admin, nostr_relay ) => {
         var pubkey = super_nostr.getPubkey( privkey );
         var listenFunction = async socket => {
             var subId = super_nostr.bytesToHex( crypto.getRandomValues( new Uint8Array( 8 ) ) );
@@ -179,7 +179,7 @@ var lilP2P = {
                     var chat_id = lilP2P.init();
                     lilP2P.users[ event.pubkey ] = chat_id;
                     lilP2P.chats[ chat_id ].pc1 = new RTCPeerConnection( lilP2P.cfg, lilP2P.con );
-                    lilP2P.connection_point = lilP2P.getConnectionPoint();
+                    lilP2P.connection_point = lilP2P.getConnectionPoint( nostr_relay );
                     lilP2P.chats[ chat_id ].pc1.onicecandidate = e => {lilP2P.updateOnIce1( e, chat_id )};
                     lilP2P.makeOffer( chat_id );
 
@@ -227,7 +227,7 @@ var lilP2P = {
                 lilP2P.acceptOffer( chat_id );
             }
         }
-        var nostr_relay = lilP2P.nostr_relays[ 0 ];
+        if ( !nostr_relay ) nostr_relay = lilP2P.nostr_relays[ 0 ];
         var connection_id = await super_nostr.newPermanentConnection( nostr_relay, listenFunction, handleFunction );
         var loop = async () => {
             var socket = super_nostr.sockets[ connection_id ].socket;
